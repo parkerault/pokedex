@@ -3,12 +3,12 @@ import { render } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
 import App from './App';
 
-test('renders learn react link', () => {
-  const { getByText } = render(
+test("Doesn't explode", () => {
+  const { getByTestId } = render(
     <MemoryRouter>
       <App />
-    </MemoryRouter>
+    </MemoryRouter>,
   );
-  const linkElement = getByText(/welcome to razzles/i);
-  expect(linkElement).toBeInTheDocument();
+  const root = getByTestId("home-root");
+  expect(root).toBeInTheDocument();
 });

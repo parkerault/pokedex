@@ -4,7 +4,7 @@
   "license": "MIT",
   "scripts": {
     "start:tsc": "tsc -b -w --preserveWatchOutput",
-    "start": "yarn start:tsc & razzle start --type=spa",
+    "start": "razzle start --type=spa",
     "build": "tsc -b && razzle build --type=spa",
     "test": "razzle test --env=jsdom"
   },
