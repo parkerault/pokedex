@@ -1,0 +1,11 @@
+{
+  "presets": [
+    "razzle/babel" // NEEDED
+  ],
+  "plugins": [
+    // var foo = object.foo ?? "default";
+    "@babel/plugin-proposal-nullish-coalescing-operator",
+    // const baz = obj?.foo?.bar?.baz;
+    "@babel/plugin-proposal-optional-chaining"
+  ]
+}
