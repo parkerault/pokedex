@@ -1,0 +1,36 @@
+.Pokemon {
+  display: grid;
+  grid-template-areas: "artwork data";
+  grid-template-columns: 400px auto;
+  grid-column-gap: 40px;
+  margin: 20px 0 80px;
+}
+
+.Pokemon_artwork {
+  max-width: 400px;
+  background-color: var(--clr-1-dark);
+  border-radius: 64px;
+  grid-area: artwork;
+  text-align: center;
+}
+
+.Pokemon_img {
+  max-width: 400px;
+}
+
+.Pokemon_data {
+  grid-area: data;
+}
+
+.Pokemon_data dt {
+  font-weight: 900;
+}
+
+.Pokemon_data dd + dt {
+  margin-top: 20px;
+}
+
+.Pokemon_move {
+  display: inline-block;
+  width: 50%;
+}

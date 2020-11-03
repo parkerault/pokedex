@@ -1,31 +1,135 @@
 {
-	// Place your snippets for typescript here. Each snippet is defined under a
-	// snippet name and has a prefix, body and description. The prefix is what is
-	// used to trigger the snippet and the body will be expanded and inserted.
-	// Possible variables are: $1, $2 for tab stops, $0 for the final cursor
-	// position, and ${1:label}, ${2:another} for placeholders. Placeholders with
-	// the same ids are connected.
-	// Example:
-	// "Print to console": {
-	// 	"prefix": "log",
-	// 	"body": [
-	// 		"console.log('$1');",
-	// 		"$2"
-	// 	],
-	// 	"description": "Log output to console"
-	// }
-	"Decoder Interface": {
-		"prefix": "di",
-		"scope": "typescript",
-		"body": "export interface I$1 extends t.TypeOf<typeof $1> {};$0"
-	},
-	"io-ts decoder definition": {
-		"prefix": "dd",
-		"scope": "typescript",
-		"body": [
-			"const $1 = t.type({",
-			"  $0",
-			"});"
-		]
-	}
+  // Place your snippets for typescript here. Each snippet is defined under a
+  // snippet name and has a prefix, body and description. The prefix is what is
+  // used to trigger the snippet and the body will be expanded and inserted.
+  // Possible variables are: $1, $2 for tab stops, $0 for the final cursor
+  // position, and ${1:label}, ${2:another} for placeholders. Placeholders with
+  // the same ids are connected.
+  // Example:
+  // "Print to console": {
+  // 	"prefix": "log",
+  // 	"body": [
+  // 		"console.log('$1');",
+  // 		"$2"
+  // 	],
+  // 	"description": "Log output to console"
+  // }
+  "Decoder Interface": {
+    "prefix": "di",
+    "scope": "typescript",
+    "body": "export interface I$1 extends t.TypeOf<typeof $1> {};$0"
+  },
+  "Decoder Function Type": {
+    "prefix": "df",
+    "scope": "typescript",
+    "body": "export type I$1Decoder = typeof $1;$0"
+  },
+  "io-ts decoder definition": {
+    "prefix": "dd",
+    "scope": "typescript",
+    "body": ["const $1 = t.type({", "  $0", "});"]
+  },
+  "Create a new redux entity": {
+    "prefix": "entity",
+    "body": [
+      "import { createAction, createReducer } from \"@reduxjs/toolkit\";",
+      "import { call, put, SagaGenerator, select, take } from \"typed-redux-saga\";",
+      "import { isRight } from \"fp-ts/Either\";",
+      "import { RootState, withPayload, Collection } from \"config/types\";",
+      "import {",
+      "  DecoderError,",
+      "  ${1:Entity},",
+      "  I${1:Entity}",
+      "} from \"entities/decoders\";",
+      "import { apiClient, responseDecoder } from \"infrastructure/RestClient\";",
+      "",
+      "/******************************************************************************",
+      " * Actions",
+      " *****************************************************************************/",
+      "",
+      "export const ${1:Entity}Actions = {",
+      "  fetchByName: createAction(\"${1:Entity}/fetchByName\", withPayload<string>()),",
+      "  fetchByNameFailed: createAction(",
+      "    \"${1:Entity}/fetchByNameFailure\",",
+      "    withPayload<Error>()",
+      "  ),",
+      "  fetchByNameSuccess: createAction(",
+      "    \"${1:Entity}/fetchByNameSuccess\",",
+      "    withPayload<{ name: string; ${1:Entity}: I${1:Entity}}>()",
+      "  ),",
+      "};",
+      "",
+      "/******************************************************************************",
+      " * State & Reducer",
+      " *****************************************************************************/",
+      "",
+      "export interface I${1:Entity}State {",
+      "  collection: Collection<I${1:Entity}>;",
+      "}",
+      "",
+      "export const ${1:Entity}DefaultState: I${1:Entity}State = {",
+      "  collection: {},",
+      "};",
+      "",
+      "export const ${1:Entity}Reducer = createReducer(${1:Entity}DefaultState, (builder) => {",
+      "  builder",
+      "    .addCase(${1:Entity}Actions.fetchByNameSuccess, (state, action) => {",
+      "      const {",
+      "        payload: { name, ${1:Entity} },",
+      "      } = action;",
+      "      state.collection[name] = ${1:Entity};",
+      "    });",
+      "});",
+      "",
+      "/******************************************************************************",
+      " * Sagas",
+      " *****************************************************************************/",
+      "",
+      "export function* watchFetchByName(): SagaGenerator<void> {",
+      "  while (true) {",
+      "    const action = yield* take(${1:Entity}Actions.fetchByName);",
+      "    yield* call({ context: null, fn: fetchByName }, action.payload);",
+      "  }",
+      "}",
+      "",
+      "export function* fetchByName(name: string): SagaGenerator<void> {",
+      "  const state = yield* select();",
+      "  const pokemon = ${1:Entity}Selectors.byName(state, { name });",
+      "  if (pokemon !== undefined) return;",
+      "  try {",
+      "    const response = yield* call(() =>",
+      "      apiClient.get<I${1:Entity}>(`pokemon/${name}`)",
+      "    );",
+      "    const result = responseDecoder(${1:Entity})(response);",
+      "    if (isRight(result)) {",
+      "      yield* put(",
+      "        ${1:Entity}Actions.fetchByNameSuccess({ name, ${1:Entity}: result.right })",
+      "      );",
+      "    } else {",
+      "      const error = new DecoderError(result);",
+      "      yield* put(${1:Entity}Actions.fetchByNameFailed(error));",
+      "    }",
+      "  } catch (e) {",
+      "    console.log(e);",
+      "  }",
+      "}",
+      "",
+      "export const ${1:Entity}Sagas = {",
+      "  watchFetchByName,",
+      "  fetchByName,",
+      "}",
+      "",
+      "/******************************************************************************",
+      " * Selectors",
+      " *****************************************************************************/",
+      "",
+      "export const ${1:Entity}Selectors = {",
+      "  byName: (state: RootState, props: { name: string }) =>",
+      "    state.${1:Entity}.collection[props.name],",
+      "};",
+      "",
+      ""
+    ],
+    "description": "Create a new redux entity"
+  }
 }

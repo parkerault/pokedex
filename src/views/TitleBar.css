@@ -1,0 +1,54 @@
+.titleBar {
+  background-color: var(--clr-1);
+  color: var(--clr-bg);
+}
+
+.titleBar .page {
+  display: flex;
+  flex-direction: row;
+  align-items: flex-end;
+  height: 70px;
+}
+
+.titleBar_title {
+  /* font-family: "VT323"; */
+  font-size: 55pt;
+  font-weight: 900;
+  letter-spacing: 6pt;
+  flex-grow: 1;
+}
+
+.titleBar_titleLink {
+  color: var(--clr-bg);
+  text-decoration: none;
+}
+
+.titleBar_navLinks {
+  /* font-family: "Source Code Pro"; */
+  flex-grow: 0;
+}
+
+.titleBar_navLink {
+  display: inline-block;
+  color: var(--clr-bg);
+  text-decoration: none;
+  padding: 20px 30px;
+  position: relative;
+  font-size: 24pt;
+}
+
+
+
+.titleBar_navLink.active::before,
+.titleBar_navLink:hover::before {
+  content: "=>";
+  position: absolute;
+  left: 0px;
+  bottom: 17px;
+}
+
+.titleBar_navLink:last-child {
+  color: var(--clr-bg);
+  text-decoration: none;
+  padding-right: 0px;
+}

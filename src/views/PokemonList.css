@@ -1,0 +1,26 @@
+.list_row {
+  font-size: 24pt;
+  text-transform: capitalize;
+}
+
+.list_row-even {
+  background-color: var(--clr-1-dark);
+}
+
+.list_flex {
+  display: inline-flex;
+  align-items: stretch;
+  justify-items: stretch;
+}
+
+.list_sprite {
+  flex-grow: 0;
+  border-radius: 4px;
+}
+
+.list_rowContent {
+  display: inline-flex;
+  align-items: center;
+  flex-grow: 1;
+  padding: 0 20px;
+}
