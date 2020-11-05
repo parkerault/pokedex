@@ -10,6 +10,7 @@ import { PokemonFormDefaultState } from "entities/PokemonForm";
 import { PokemonLocationAreasDefaultState } from "entities/PokemonLocationAreas";
 import { PokemonSpeciesDefaultState } from "entities/PokemonSpecies";
 import { RegionDefaultState } from "entities/Region";
+import { PokemonSearchDefaultState } from "features/PokemonSearch";
 import {} from "history";
 
 export default function createDefaultState() {
@@ -26,6 +27,8 @@ export default function createDefaultState() {
     Region: RegionDefaultState,
     Location: LocationDefaultState,
     LocationArea: LocationAreaDefaultState,
-    // views: {},
+    views: {
+      PokemonSearch: PokemonSearchDefaultState,
+    },
   };
 }

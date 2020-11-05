@@ -1,5 +1,9 @@
 import { RootDispatch } from "config/types";
+import { INamedAPIResource } from "entities/decoders/Decoders";
+import { MultiSelectors } from "entities/MultiSelectors";
 import { PokemonSelectors } from "entities/Pokemon";
+import { PokemonSearchSelectors } from "features/PokemonSearch";
+import memoizeOne from "memoize-one";
 import React from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { Link } from "react-router-dom";
@@ -9,8 +13,9 @@ import { AutoSize } from "./AutoSize";
 
 import "./PokemonList.css";
 
+
 export const PokemonList: React.FC = () => {
-  const PokemonIndex = useSelector(PokemonSelectors.index);
+  const pokemonIndex = useSelector(MultiSelectors.pokemonSearchList);
   return (
     <AutoSize>
       {({ height }) => (
@@ -18,9 +23,9 @@ export const PokemonList: React.FC = () => {
           itemKey={(idx, data) => data[idx].name}
           width="100%"
           height={height}
-          itemCount={PokemonIndex.length}
+          itemCount={pokemonIndex.length}
           itemSize={96}
-          itemData={PokemonIndex}
+          itemData={pokemonIndex}
           overscanCount={10}
         >
           {PokemonListRow}

@@ -13,6 +13,7 @@ import { RegionReducer } from "entities/Region";
 import { LocationReducer } from "entities/Location";
 import { LocationAreaReducer } from "entities/LocationArea";
 import { PokemonLocationAreasReducer } from "entities/PokemonLocationAreas";
+import { PokemonSearchReducer } from "features/PokemonSearch";
 
 export default function createRootReducer(
   history: History
@@ -30,6 +31,8 @@ export default function createRootReducer(
     Region: RegionReducer,
     Location: LocationReducer,
     LocationArea: LocationAreaReducer,
-    // views: combineReducers({}),
+    views: combineReducers({
+      PokemonSearch: PokemonSearchReducer,
+    }),
   });
 }

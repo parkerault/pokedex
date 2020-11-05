@@ -6,17 +6,17 @@ import { createLogger } from "redux-logger";
 import { LocalStorageKeys, LocalStorageObject } from "config/types";
 import createRootReducer from "config/createRootReducer";
 import createDefaultState from "config/createDefaultState";
-import { BrowserHistory } from "history";
+import { History } from "history";
 import createRootSaga from "./createRootSaga";
 import { throttle } from "throttle-debounce";
 
-export default function configureStore(history: BrowserHistory) {
+export default function configureStore(history: History) {
   const sagaMiddleware = createSagaMiddleware();
 
   const middlewares = [
     createRouterMiddleware(history),
     sagaMiddleware,
-    // createLogger({ collapsed: true }),
+    createLogger({ collapsed: true }),
   ];
 
   const store = createStore(
@@ -43,7 +43,7 @@ export default function configureStore(history: BrowserHistory) {
 }
 
 const toPersist: LocalStorageKeys = [
-  "Pokemon",
+  // "Pokemon",
   "Ability",
   "EvolutionChain",
   "PokemonColor",

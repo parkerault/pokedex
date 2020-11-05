@@ -17,7 +17,7 @@
     "@types/throttle-debounce": "^2.1.0",
     "connected-react-router": "^6.8.0",
     "fp-ts": "^2.8.4",
-    "history": "^5.0.0",
+    "history": "^4.7.2",
     "io-ts": "^2.2.11",
     "io-ts-reporters": "^1.2.2",
     "memoize-one": "^5.1.1",

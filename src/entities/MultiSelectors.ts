@@ -5,6 +5,9 @@ import { PokemonSpeciesSelectors } from "./PokemonSpecies";
 import { EvolutionChainSelectors } from "./EvolutionChain";
 import { PokemonLocationAreasSelectors } from "./PokemonLocationAreas";
 import { MoveSelectors } from "./Move";
+import memoizeOne from "memoize-one";
+import { INamedAPIResource } from "./decoders/Decoders";
+import { PokemonSearchSelectors } from "features/PokemonSearch";
 
 const byName = (_: RootState, props: { name: string }) => props.name;
 // const byUrl = (_: RootState, props: { url : string }) => props.url;
@@ -52,6 +55,14 @@ const pokemonMoves = createCachedSelector(
   }
 )(byName);
 
+const pokemonSearchList = memoizeOne(
+  (state: RootState): INamedAPIResource[] => {
+    const pokemonIndex = PokemonSelectors.index(state);
+    const searchInput = PokemonSearchSelectors.input(state);
+    return pokemonIndex.filter((idx) => idx.name.match(searchInput));
+  }
+);
+
 export const MultiSelectors = {
   pokemonAbilities,
   pokemonColor,
@@ -59,6 +70,7 @@ export const MultiSelectors = {
   pokemonGenders,
   pokemonLocationAreas,
   pokemonMoves,
+  pokemonSearchList,
 };
 
 // declare const state: RootState;

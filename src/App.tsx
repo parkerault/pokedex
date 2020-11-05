@@ -8,9 +8,9 @@ import "App.css";
 import TitleBar from "views/TitleBar";
 import { useDispatch } from "react-redux";
 import { PokemonActions } from "entities/Pokemon";
-import { RootAction, RootDispatch } from "config/types";
+import { RootDispatch } from "config/types";
 import { Pokemon } from "views/Pokemon";
-import { ListSearch } from "views/Search";
+import { PokemonSearchActions } from "features/PokemonSearch";
 
 const App = () => {
   const dispatch = useDispatch<RootDispatch>();
@@ -20,7 +20,6 @@ const App = () => {
   return (
     <>
       <TitleBar></TitleBar>
-      <ListSearch></ListSearch>
       <Switch>
         <Route exact={true} path="/">
           <Redirect to="/pokemon" />
@@ -28,8 +27,20 @@ const App = () => {
         <Route exact={true} path="/pokemon" component={Home} />
         <Route path="/pokemon/:nameId" component={Pokemon} />
       </Switch>
+      {/* <RouteChangeWatcher /> */}
     </>
   );
 };
+
+// const RouteChangeWatcher: React.FC = () => {
+//   const dispatch = useDispatch<RootDispatch>();
+//   useEffect(() => {
+//     // Clear the search input on page navigation
+//     const onPageShow = () => dispatch(PokemonSearchActions.setInputState(""));
+//     window.addEventListener("pageshow", onPageShow);
+//     return () => window.removeEventListener("pageshow", onPageShow);
+//   }, []);
+//   return null;
+// };
 
 export default App;
