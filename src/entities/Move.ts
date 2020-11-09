@@ -82,7 +82,7 @@ function* fetchByName(name: string): SagaGenerator<void> {
     if (isRight(result)) {
       yield* put(MoveActions.fetchByNameSuccess({ name, Move: result.right }));
     } else {
-      const error = new DecoderError(result);
+      const error = new DecoderError(result.left);
       yield* put(MoveActions.fetchByNameFailed(error));
     }
   } catch (error) {

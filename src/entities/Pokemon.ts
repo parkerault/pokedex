@@ -46,7 +46,7 @@ export const PokemonActions = {
   ),
   fetchByName: createAction("Pokemon/fetchByName", withPayload<string>()),
   fetchByNameFailed: createAction(
-    "Pokemon/fetchByNameFailure",
+    "Pokemon/fetchByNameFailed",
     withPayload<Error>()
   ),
   fetchByNameSuccess: createAction(
@@ -95,18 +95,19 @@ export function* watchFetchIndex(): SagaGenerator<void> {
   }
 }
 
-function* fetchIndex(): SagaGenerator<void> {
+export const getPokemonIndex = () =>
+  apiClient.get<INamedAPIResourceList>("pokemon/?limit=1050");
+
+export function* fetchIndex(): SagaGenerator<void> {
   const index = yield* select(PokemonSelectors.index);
   if (index.length > 0) return;
   try {
-    const response = yield* call(() =>
-      apiClient.get<INamedAPIResourceList>("pokemon/?limit=1050")
-    );
+    const response = yield * call(getPokemonIndex);
     const result = responseDecoder(NamedAPIResourceList)(response);
     if (isRight(result)) {
       yield* put(PokemonActions.fetchIndexSuccess(result.right));
     } else {
-      const error = new DecoderError(result);
+      const error = new DecoderError(result.left);
       yield* put(PokemonActions.fetchIndexFailed(error));
     }
   } catch (e) {
@@ -123,9 +124,8 @@ export function* watchFetchByName(): SagaGenerator<void> {
   }
 }
 
-function* fetchByName(name: string): SagaGenerator<void> {
-  const state = yield* select();
-  let pokemon = PokemonSelectors.byName(state, { name });
+export function* fetchByName(name: string): SagaGenerator<void> {
+  let pokemon = yield* select(PokemonSelectors.byName, { name });
   if (pokemon !== undefined) return;
   try {
     const response = yield* call(() =>
@@ -133,21 +133,27 @@ function* fetchByName(name: string): SagaGenerator<void> {
     );
     const maybePokemon = responseDecoder(Pokemon)(response);
     if (isRight(maybePokemon)) {
-      yield* put(
-        PokemonActions.fetchByNameSuccess({ name, pokemon: maybePokemon.right })
-      );
+      console.log(maybePokemon.right);
+      yield  *
+   
+            put(
+            PokemonActions.fetchByNameSuccess({
+              name,
+              pokemon: maybePokemon.right,
+            })
+          );
       pokemon = maybePokemon.right;
       // fetch all of the related entities
-      yield *
-        call(fetchRelatedEntities, {
-          abilities: pokemon.abilities.map((a) => a.ability.name),
-          // pokemonForms: pokemon.forms.map((f) => f.name),
-          pokemonSpecies: pokemon.species.name,
-          pokemonLocationAreasUrl: pokemon.location_area_encounters,
-          move: pokemon.moves.map((m) => m.move.name),
-        });
+      // yield *
+      //   call(fetchRelatedEntities, {
+      //     abilities: pokemon.abilities.map((a) => a.ability.name),
+      //     // pokemonForms: pokemon.forms.map((f) => f.name),
+      //     pokemonSpecies: pokemon.species.name,
+      //     pokemonLocationAreasUrl: pokemon.location_area_encounters,
+      //     move: pokemon.moves.map((m) => m.move.name),
+      //   });
     } else {
-      const error = new DecoderError(maybePokemon);
+      const error = new DecoderError(maybePokemon.left);
       yield* put(PokemonActions.fetchByNameFailed(error));
     }
   } catch (error) {
@@ -155,39 +161,39 @@ function* fetchByName(name: string): SagaGenerator<void> {
   }
 }
 
-function* fetchRelatedEntities(names: {
-  abilities: string[];
-  // pokemonForms: string[];
-  pokemonSpecies: string;
-  pokemonLocationAreasUrl: string;
-  move: string[];
-}): SagaGenerator<void> {
-  yield * put(AbilityActions.fetchByNames(names.abilities));
-  // yield* put(PokemonFormActions.fetchByNames(names.pokemonForms));
-  yield *
-    put(PokemonLocationAreasActions.fetchByUrl(names.pokemonLocationAreasUrl));
-  yield * put(MoveActions.fetchByNames(names.move));
-  // We need the species entity before we can get the color and evolution names
-  yield * put(PokemonSpeciesActions.fetchByName(names.pokemonSpecies));
-  const action = ((yield take([
-    PokemonSpeciesActions.fetchByNameSuccess.toString(),
-    PokemonSpeciesActions.fetchByNameFailed.toString(),
-  ])) as any) as SpeciesActions;
-  if (action.type === "PokemonSpecies/fetchByNameSuccess") {
-    const state = yield * select();
-    const species = PokemonSpeciesSelectors.byName(state, {
-      name: names.pokemonSpecies,
-    }) as IPokemonSpecies;
-    const evolutionUrl = species.evolution_chain.url;
-    const pokemonColor = species.color.name;
-    yield * put(PokemonColorActions.fetchByName(pokemonColor));
-    yield * put(EvolutionChainActions.fetchByUrl(evolutionUrl));
-  }
-}
+// function* fetchRelatedEntities(names: {
+//   abilities: string[];
+//   // pokemonForms: string[];
+//   pokemonSpecies: string;
+//   pokemonLocationAreasUrl: string;
+//   move: string[];
+// }): SagaGenerator<void> {
+//   yield * put(AbilityActions.fetchByNames(names.abilities));
+//   // yield* put(PokemonFormActions.fetchByNames(names.pokemonForms));
+//   yield *
+//     put(PokemonLocationAreasActions.fetchByUrl(names.pokemonLocationAreasUrl));
+//   yield * put(MoveActions.fetchByNames(names.move));
+//   // We need the species entity before we can get the color and evolution names
+//   yield * put(PokemonSpeciesActions.fetchByName(names.pokemonSpecies));
+//   const action = (yield take([
+//     PokemonSpeciesActions.fetchByNameSuccess.toString(),
+//     PokemonSpeciesActions.fetchByNameFailed.toString(),
+//   ])) as SpeciesActions;
+//   if (action.type === "PokemonSpecies/fetchByNameSuccess") {
+//     const state = yield * select();
+//     const species = PokemonSpeciesSelectors.byName(state, {
+//       name: names.pokemonSpecies,
+//     }) as IPokemonSpecies;
+//     const evolutionUrl = species.evolution_chain.url;
+//     const pokemonColor = species.color.name;
+//     yield * put(PokemonColorActions.fetchByName(pokemonColor));
+//     yield * put(EvolutionChainActions.fetchByUrl(evolutionUrl));
+//   }
+// }
 
 type SpeciesActions =
-  | { type: string; payload: IPokemonSpecies }
-  | { type: string; payload: Error };
+  | { type: "PokemonSpecies/fetchByNameSuccess"; payload: IPokemonSpecies }
+  | { type: "PokemonSpecies/fetchByNameFailed"; payload: Error };
 
 export const PokemonSagas = {
   watchFetchIndex,

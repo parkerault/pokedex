@@ -1,9 +1,7 @@
-import * as t from "io-ts";
-import PrettyReporter from "io-ts-reporters";
+import * as D from "io-ts/Decoder";
 
-export interface ValidationErrors extends t.Errors {}
-export interface ValidationError extends t.ValidationError {}
-export interface Validator<T> extends t.Type<T> {}
+export interface Validator<T> extends D.Decoder<unknown, T> {}
+export type DecodeError = D.DecodeError;
 
 /*
  * -----------------------------------------------------------------------------
@@ -11,100 +9,101 @@ export interface Validator<T> extends t.Type<T> {}
  * -----------------------------------------------------------------------------
  */
 
-export class DecoderError<T> extends Error {
-  constructor(result: t.Validation<T>) {
-    const report = PrettyReporter.report(result).join("\n");
-    super(report);
+export class DecoderError extends Error {
+  name = "DecoderError"
+  constructor(result: DecodeError) {
+    super();
+    this.message = D.draw(result);
   }
 }
 
-const APIResource = t.type({
-  url: t.string,
+const APIResource = D.type({
+  url: D.string,
 });
 
-export const NamedAPIResource = t.type({
-  name: t.string,
-  url: t.string,
+export const NamedAPIResource = D.type({
+  name: D.string,
+  url: D.string,
 });
 
-export interface INamedAPIResource extends t.TypeOf<typeof NamedAPIResource> {}
+export interface INamedAPIResource extends D.TypeOf<typeof NamedAPIResource> {}
 
-export const NamedAPIResourceList = t.type({
-  count: t.number,
-  next: t.union([t.string, t.null]),
-  previous: t.union([t.string, t.null]),
-  results: t.array(NamedAPIResource),
+export const NamedAPIResourceList = D.type({
+  count: D.number,
+  next: D.nullable(D.string),
+  previous: D.nullable(D.string),
+  results: D.array(NamedAPIResource),
 });
 
-export interface INamedAPIResourceList extends t.TypeOf<typeof NamedAPIResourceList> {};
+export interface INamedAPIResourceList extends D.TypeOf<typeof NamedAPIResourceList> {};
 
-const Name = t.type({
-  name: t.string,
+const Name = D.type({
+  name: D.string,
   language: NamedAPIResource,
 });
 
-const Language = t.type({
-  id: t.number,
-  name: t.string,
-  official: t.boolean,
-  iso639: t.string,
-  iso3166: t.string,
-  names: t.array(Name),
+const Language = D.type({
+  id: D.number,
+  name: D.string,
+  official: D.boolean,
+  iso639: D.string,
+  iso3166: D.string,
+  names: D.array(Name),
 });
 
-const Description = t.type({
-  description: t.string,
+const Description = D.type({
+  description: D.string,
   language: NamedAPIResource,
 });
 
-const Effect = t.type({
-  effect: t.string,
+const Effect = D.type({
+  effect: D.string,
   language: NamedAPIResource,
 });
 
-const Encounter = t.type({
-  min_level: t.number,
-  max_level: t.number,
-  condition_values: t.array(NamedAPIResource),
-  chance: t.number,
+const Encounter = D.type({
+  min_level: D.number,
+  max_level: D.number,
+  condition_values: D.array(NamedAPIResource),
+  chance: D.number,
   method: NamedAPIResource,
 });
 
-const FlavorText = t.type({
-  flavor_text: t.string,
+const FlavorText = D.type({
+  flavor_text: D.string,
   language: NamedAPIResource,
   // This may also have a `version` property for the game version.
 });
 
-const GenerationGameIndex = t.type({
-  game_index: t.number,
+const GenerationGameIndex = D.type({
+  game_index: D.number,
   generation: NamedAPIResource,
 });
 
-const MachineVersionDetail = t.type({
+const MachineVersionDetail = D.type({
   machine: APIResource,
   version_group: NamedAPIResource,
 });
 
-const VerboseEffect = t.type({
-  effect: t.string,
-  short_effect: t.string,
+const VerboseEffect = D.type({
+  effect: D.string,
+  short_effect: D.string,
   language: NamedAPIResource,
 });
 
-const VersionEncounterDetail = t.type({
+const VersionEncounterDetail = D.type({
   version: NamedAPIResource,
-  max_chance: t.number,
-  encounter_details: t.array(Encounter),
+  max_chance: D.number,
+  encounter_details: D.array(Encounter),
 });
 
-const VersionGameIndex = t.type({
-  game_index: t.number,
+const VersionGameIndex = D.type({
+  game_index: D.number,
   version: NamedAPIResource,
 });
 
-const VersionGroupFlavorText = t.type({
-  text: t.string,
+const VersionGroupFlavorText = D.type({
+  text: D.string,
   language: NamedAPIResource,
   version_group: NamedAPIResource,
 });
@@ -357,15 +356,15 @@ const VersionGroupFlavorText = t.type({
 //   evolves_to: Array<Chain>;
 // }
 
-const ChainSpecies = t.type({
+const ChainSpecies = D.type({
   species: NamedAPIResource,
 });
 
-const Chain = t.type({
-  is_baby: t.boolean,
+const Chain = D.type({
+  is_baby: D.boolean,
   species: NamedAPIResource,
   // evolution_details: t.array(EvolutionDetail),
-  evolves_to: t.array(ChainSpecies),
+  evolves_to: D.array(ChainSpecies),
 });
 
 /**
@@ -376,13 +375,13 @@ const Chain = t.type({
  * GET https://pokeapi.co/api/v2/evolution-chain/{id}/
  */
 
-export const EvolutionChain = t.type({
-  id: t.number,
-  baby_trigger_item: t.union([NamedAPIResource, t.null]),
+export const EvolutionChain = D.type({
+  id: D.number,
+  baby_trigger_item: D.nullable(NamedAPIResource),
   chain: Chain,
 });
 
-export interface IEvolutionChain extends t.TypeOf<typeof EvolutionChain> {}
+export interface IEvolutionChain extends D.TypeOf<typeof EvolutionChain> {}
 export type IEvolutionChainDecoder = typeof EvolutionChain;
 
 /*
@@ -401,7 +400,7 @@ export type IEvolutionChainDecoder = typeof EvolutionChain;
 //   version_details: t.array(EncounterVersionDetails),
 // });
 
-export const PokemonEncounter = t.type({
+export const PokemonEncounter = D.type({
   pokemon: NamedAPIResource,
 });
 
@@ -412,16 +411,16 @@ export const PokemonEncounter = t.type({
  * GET https://pokeapi.co/api/v2/location/{id or name}/
  */
 
-export const Location = t.type({
-  id: t.number,
-  name: t.string,
+export const Location = D.type({
+  id: D.number,
+  name: D.string,
   region: NamedAPIResource,
-  names: t.array(Name),
-  game_indices: t.array(GenerationGameIndex),
-  areas: t.array(NamedAPIResource),
+  names: D.array(Name),
+  game_indices: D.array(GenerationGameIndex),
+  areas: D.array(NamedAPIResource),
 });
 
-export interface ILocation extends t.TypeOf<typeof Location> {}
+export interface ILocation extends D.TypeOf<typeof Location> {}
 export type ILocationDecoder = typeof Location;
 
 /**
@@ -431,17 +430,17 @@ export type ILocationDecoder = typeof Location;
  * GET https://pokeapi.co/api/v2/location-area/{id or name}/
  */
 
-export const LocationArea = t.type({
-  id: t.number,
-  name: t.string,
-  game_index: t.number,
+export const LocationArea = D.type({
+  id: D.number,
+  name: D.string,
+  game_index: D.number,
   // encounter_method_rates: t.array(EncounterMethodRate),
   location: NamedAPIResource,
-  names: t.array(Name),
-  pokemon_encounters: t.array(PokemonEncounter),
+  names: D.array(Name),
+  pokemon_encounters: D.array(PokemonEncounter),
 });
 
-export interface ILocationArea extends t.TypeOf<typeof LocationArea> {}
+export interface ILocationArea extends D.TypeOf<typeof LocationArea> {}
 export type ILocationAreaDecoder = typeof LocationArea;
 
 // export const PalParkEncounterSpecies = t.type({
@@ -474,17 +473,17 @@ export type ILocationAreaDecoder = typeof LocationArea;
  * GET https://pokeapi.co/api/v2/region/{id or name}/
  */
 
-export const Region = t.type({
-  id: t.number,
-  locations: t.array(NamedAPIResource),
-  name: t.string,
-  names: t.array(Name),
+export const Region = D.type({
+  id: D.number,
+  locations: D.array(NamedAPIResource),
+  name: D.string,
+  names: D.array(Name),
   main_generation: NamedAPIResource,
-  pokedexes: t.array(NamedAPIResource),
-  version_groups: t.array(NamedAPIResource),
+  pokedexes: D.array(NamedAPIResource),
+  version_groups: D.array(NamedAPIResource),
 });
 
-export interface IRegion extends t.TypeOf<typeof Region> {}
+export interface IRegion extends D.TypeOf<typeof Region> {}
 export type IRegionDecoder = typeof Region;
 
 /*
@@ -493,20 +492,20 @@ export type IRegionDecoder = typeof Region;
  * -----------------------------------------------------------------------------
  */
 
-export const AbilityEffectChange = t.type({
-  effect_entries: t.array(Effect),
+export const AbilityEffectChange = D.type({
+  effect_entries: D.array(Effect),
   version_group: NamedAPIResource,
 });
 
-export const AbilityFlavorText = t.type({
-  flavor_text: t.string,
+export const AbilityFlavorText = D.type({
+  flavor_text: D.string,
   language: NamedAPIResource,
   version_group: NamedAPIResource,
 });
 
-export const AbilityPokemon = t.type({
-  is_hidden: t.boolean,
-  slot: t.number,
+export const AbilityPokemon = D.type({
+  is_hidden: D.boolean,
+  slot: D.number,
   pokemon: NamedAPIResource,
 });
 
@@ -518,19 +517,19 @@ export const AbilityPokemon = t.type({
  * GET https://pokeapi.co/api/v2/ability/{id or name}/
  */
 
-export const Ability = t.type({
-  id: t.number,
-  name: t.string,
-  is_main_series: t.boolean,
+export const Ability = D.type({
+  id: D.number,
+  name: D.string,
+  is_main_series: D.boolean,
   generation: NamedAPIResource,
-  names: t.array(Name),
-  effect_entries: t.array(VerboseEffect),
-  effect_changes: t.array(AbilityEffectChange),
-  flavor_text_entries: t.array(AbilityFlavorText),
-  pokemon: t.array(AbilityPokemon),
+  names: D.array(Name),
+  effect_entries: D.array(VerboseEffect),
+  effect_changes: D.array(AbilityEffectChange),
+  flavor_text_entries: D.array(AbilityFlavorText),
+  pokemon: D.array(AbilityPokemon),
 });
 
-export interface IAbility extends t.TypeOf<typeof Ability> {}
+export interface IAbility extends D.TypeOf<typeof Ability> {}
 export type IAbilityDecoder = typeof Ability;
 
 /**
@@ -568,8 +567,8 @@ export type IAbilityDecoder = typeof Ability;
 // export interface IEggGroup extends t.TypeOf<typeof EggGroup> {}
 // export type IEggGroupDecoder = typeof EggGroup;
 
-export const PokemonSpeciesGender = t.type({
-  rate: t.number,
+export const PokemonSpeciesGender = D.type({
+  rate: D.number,
   pokemon_species: NamedAPIResource,
 });
 
@@ -581,24 +580,24 @@ export const PokemonSpeciesGender = t.type({
  * GET https://pokeapi.co/api/v2/gender/{id or name}/
  */
 
-export const Gender = t.type({
-  id: t.number,
-  name: t.string,
-  pokemon_species_details: t.array(PokemonSpeciesGender),
-  required_for_evolution: t.array(NamedAPIResource),
+export const Gender = D.type({
+  id: D.number,
+  name: D.string,
+  pokemon_species_details: D.array(PokemonSpeciesGender),
+  required_for_evolution: D.array(NamedAPIResource),
 });
 
-export interface IGender extends t.TypeOf<typeof Gender> {}
+export interface IGender extends D.TypeOf<typeof Gender> {}
 export type IGenderDecoder = typeof Gender;
 
-const PokemonAbility = t.type({
-  is_hidden: t.boolean,
-  slot: t.number,
+const PokemonAbility = D.type({
+  is_hidden: D.boolean,
+  slot: D.number,
   ability: NamedAPIResource, // Ability
 });
 
-const PokemonType = t.type({
-  slot: t.number,
+const PokemonType = D.type({
+  slot: D.number,
   type: NamedAPIResource, // Type
 });
 
@@ -612,27 +611,27 @@ const PokemonType = t.type({
 //   version_details: t.array(PokemonHeldItemVersion),
 // });
 
-const PokemonMoveVersion = t.type({
+const PokemonMoveVersion = D.type({
   move_learn_method: NamedAPIResource, // MoveLearnMethod
   version_group: NamedAPIResource, // VersionGroup
-  level_learned_at: t.number,
+  level_learned_at: D.number,
 });
 
-const PokemonMove = t.type({
+const PokemonMove = D.type({
   move: NamedAPIResource, // Move
   // version_group_details: t.array(PokemonMoveVersion),
 });
 
-const PokemonStat = t.type({
+const PokemonStat = D.type({
   stat: NamedAPIResource, // Stat,
-  effort: t.number,
-  base_stat: t.number,
+  effort: D.number,
+  base_stat: D.number,
 });
 
-const PokemonSprites = t.type({
-  other: t.type({
-    "official-artwork": t.type({
-      front_default: t.union([t.string, t.null]),
+const PokemonSprites = D.type({
+  other: D.type({
+    "official-artwork": D.type({
+      front_default: D.nullable(D.string),
     }),
   }),
 });
@@ -647,27 +646,27 @@ const PokemonSprites = t.type({
  * GET https://pokeapi.co/api/v2/pokemon/{id or name}/
  */
 
-export const Pokemon = t.type({
-  id: t.number,
-  name: t.string,
-  base_experience: t.number,
-  height: t.number,
-  is_default: t.boolean,
-  order: t.number,
-  weight: t.number,
-  abilities: t.array(PokemonAbility),
+export const Pokemon = D.type({
+  id: D.number,
+  name: D.string,
+  base_experience: D.number,
+  height: D.number,
+  is_default: D.boolean,
+  order: D.number,
+  weight: D.number,
+  abilities: D.array(PokemonAbility),
   // forms: t.array(NamedAPIResource), // PokemonForm
-  game_indices: t.array(VersionGameIndex),
+  game_indices: D.array(VersionGameIndex),
   // held_items: t.array(PokemonHeldItem),
-  location_area_encounters: t.string, // URL!
-  moves: t.array(PokemonMove),
+  location_area_encounters: D.string, // URL!
+  moves: D.array(PokemonMove),
   species: NamedAPIResource, // PokemonSpecies
   sprites: PokemonSprites,
   // stats: t.array(PokemonStat),
   // types: t.array(PokemonType),
 });
 
-export interface IPokemon extends t.TypeOf<typeof Pokemon> {}
+export interface IPokemon extends D.TypeOf<typeof Pokemon> {}
 export type IPokemonDecoder = typeof Pokemon;
 
 /**
@@ -675,10 +674,10 @@ export type IPokemonDecoder = typeof Pokemon;
  *
  * GET https://pokeapi.co/api/v2/pokemon/{id or name}/encounters
  */
-export const PokemonLocationAreas = t.array(
-  t.type({
+export const PokemonLocationAreas = D.array(
+  D.type({
     location_area: NamedAPIResource, // LocationArea
-    version_details: t.array(VersionEncounterDetail),
+    version_details: D.array(VersionEncounterDetail),
   }),
 );
 
@@ -690,7 +689,7 @@ export const PokemonLocationAreas = t.array(
 const LocationAreaEncounter = PokemonLocationAreas;
 
 export interface IPokemonLocationAreas
-  extends t.TypeOf<typeof PokemonLocationAreas> {}
+  extends D.TypeOf<typeof PokemonLocationAreas> {}
 export type IPokemonLocationAreasDecoder = typeof PokemonLocationAreas;
 
 /**
@@ -702,19 +701,19 @@ export type IPokemonLocationAreasDecoder = typeof PokemonLocationAreas;
  * GET https://pokeapi.co/api/v2/pokemon-color/{id or name}/
  */
 
-export const PokemonColor = t.type({
-  id: t.number,
-  name: t.string,
-  names: t.array(Name),
-  pokemon_species: t.array(NamedAPIResource), // PokemonSpecies
+export const PokemonColor = D.type({
+  id: D.number,
+  name: D.string,
+  names: D.array(Name),
+  pokemon_species: D.array(NamedAPIResource), // PokemonSpecies
 });
 
-export interface IPokemonColor extends t.TypeOf<typeof PokemonColor> {}
+export interface IPokemonColor extends D.TypeOf<typeof PokemonColor> {}
 export type IPokemonColorDecoder = typeof PokemonColor;
 
-const PokemonFormSprites = t.type({
-  front_default: t.string,
-  front_shiny: t.string,
+const PokemonFormSprites = D.type({
+  front_default: D.string,
+  front_shiny: D.string,
 });
 
 /**
@@ -726,27 +725,27 @@ const PokemonFormSprites = t.type({
  * GET https://pokeapi.co/api/v2/pokemon-form/{id or name}/
  */
 
-export const PokemonForm = t.type({
-  id: t.number,
-  name: t.string,
-  order: t.number,
-  form_order: t.number,
-  is_default: t.boolean,
-  is_battle_only: t.boolean,
-  is_mega: t.boolean,
-  form_name: t.string,
+export const PokemonForm = D.type({
+  id: D.number,
+  name: D.string,
+  order: D.number,
+  form_order: D.number,
+  is_default: D.boolean,
+  is_battle_only: D.boolean,
+  is_mega: D.boolean,
+  form_name: D.string,
   pokemon: NamedAPIResource, // Pokemon
   sprites: PokemonFormSprites,
   version_group: NamedAPIResource, // VersionGroup
-  names: t.array(Name),
-  form_names: t.array(Name),
+  names: D.array(Name),
+  form_names: D.array(Name),
 });
 
-export interface IPokemonForm extends t.TypeOf<typeof PokemonForm> {}
+export interface IPokemonForm extends D.TypeOf<typeof PokemonForm> {}
 export type IPokemonFormDecoder = typeof PokemonForm;
 
-const AwesomeName = t.type({
-  awesome_name: t.string,
+const AwesomeName = D.type({
+  awesome_name: D.string,
 });
 
 /**
@@ -765,13 +764,13 @@ const AwesomeName = t.type({
 // export interface IPokemonShape extends t.TypeOf<typeof PokemonShape> {}
 // export type IPokemonShapeDecoder = typeof PokemonShape;
 
-const Genus = t.type({
-  genus: t.string,
+const Genus = D.type({
+  genus: D.string,
   language: NamedAPIResource, // Language
 });
 
-const PokemonSpeciesVariety = t.type({
-  is_default: t.boolean,
+const PokemonSpeciesVariety = D.type({
+  is_default: D.boolean,
   pokemon: NamedAPIResource, // Pokemon
 });
 
@@ -785,33 +784,33 @@ const PokemonSpeciesVariety = t.type({
  * GET https://pokeapi.co/api/v2/pokemon-species/{id or name}/
  */
 
-export const PokemonSpecies = t.type({
-  id: t.number,
-  name: t.string,
-  gender_rate: t.number,
-  capture_rate: t.number,
-  base_happiness: t.number,
-  is_baby: t.boolean,
-  is_legendary: t.boolean,
-  is_mythical: t.boolean,
-  hatch_counter: t.number,
-  has_gender_differences: t.boolean,
-  forms_switchable: t.boolean,
+export const PokemonSpecies = D.type({
+  id: D.number,
+  name: D.string,
+  gender_rate: D.number,
+  capture_rate: D.number,
+  base_happiness: D.number,
+  is_baby: D.boolean,
+  is_legendary: D.boolean,
+  is_mythical: D.boolean,
+  hatch_counter: D.number,
+  has_gender_differences: D.boolean,
+  forms_switchable: D.boolean,
   growth_rate: NamedAPIResource, // GrowthRate
-  egg_groups: t.array(NamedAPIResource), // EggGroup
+  egg_groups: D.array(NamedAPIResource), // EggGroup
   color: NamedAPIResource, // PokemonColor
   shape: NamedAPIResource, // PokemonShape
-  evolves_from_species: t.union([NamedAPIResource, t.null]), // PokemonSpecies
+  evolves_from_species: D.nullable(NamedAPIResource),
   evolution_chain: APIResource, // EvolutionChain
   habitat: NamedAPIResource, // PokemonHabitat
-  names: t.array(Name),
-  flavor_text_entries: t.array(FlavorText),
-  form_descriptions: t.array(Description),
-  genera: t.array(Genus),
-  varieties: t.array(PokemonSpeciesVariety),
+  names: D.array(Name),
+  flavor_text_entries: D.array(FlavorText),
+  form_descriptions: D.array(Description),
+  genera: D.array(Genus),
+  varieties: D.array(PokemonSpeciesVariety),
 });
 
-export interface IPokemonSpecies extends t.TypeOf<typeof PokemonSpecies> {}
+export interface IPokemonSpecies extends D.TypeOf<typeof PokemonSpecies> {}
 export type IPokemonSpeciesDecoder = typeof PokemonSpecies;
 
 /*
@@ -820,18 +819,18 @@ export type IPokemonSpeciesDecoder = typeof PokemonSpecies;
  * -----------------------------------------------------------------------------
  */
 
-const ContestComboDetail = t.type({
-  use_before: t.union([t.array(NamedAPIResource), t.null]),
-  use_after: t.union([t.array(NamedAPIResource), t.null]),
+const ContestComboDetail = D.type({
+  use_before: D.nullable(D.array(NamedAPIResource)),
+  use_after: D.nullable(D.array(NamedAPIResource)),
 });
 
-const ContestComboSet = t.type({
+const ContestComboSet = D.type({
   normal: ContestComboDetail,
   super: ContestComboDetail,
 });
 
-const MoveFlavorText = t.type({
-  flavor_text: t.string,
+const MoveFlavorText = D.type({
+  flavor_text: D.string,
   language: NamedAPIResource,
   version_group: NamedAPIResource,
 });
@@ -851,16 +850,16 @@ const MoveFlavorText = t.type({
 //   stat_chance: t.number,
 // });
 
-const MoveStatChange = t.type({
-  change: t.number,
+const MoveStatChange = D.type({
+  change: D.number,
   stat: NamedAPIResource,
 });
 
-const PastMoveStatValues = t.type({
-  accuracy: t.number,
-  effect_chance: t.number,
-  power: t.number,
-  pp: t.number,
+const PastMoveStatValues = D.type({
+  accuracy: D.number,
+  effect_chance: D.number,
+  power: D.number,
+  pp: D.number,
   effect_entries: VerboseEffect,
   version_group: NamedAPIResource,
 });
@@ -873,31 +872,31 @@ const PastMoveStatValues = t.type({
  *
  * GET https://pokeapi.co/api/v2/move/{id or name}/
  */
-export const Move = t.type({
-  id: t.number,
-  name: t.string,
-  accuracy: t.union([t.number, t.null]),
-  effect_chance: t.union([t.number, t.null]),
-  pp: t.number,
-  priority: t.number,
-  power: t.union([t.number, t.null]),
-  contest_combos: t.union([ContestComboSet, t.null]),
-  contest_type: t.union([NamedAPIResource, t.null]),
-  contest_effect: t.union([APIResource, t.null]),
+export const Move = D.type({
+  id: D.number,
+  name: D.string,
+  accuracy: D.nullable(D.number),
+  effect_chance: D.nullable(D.number),
+  pp: D.number,
+  priority: D.number,
+  power: D.nullable(D.number),
+  contest_combos: D.nullable(ContestComboSet),
+  contest_type: D.nullable(NamedAPIResource),
+  contest_effect: D.nullable(APIResource,),
   damage_class: NamedAPIResource,
-  effect_entries: t.array(VerboseEffect),
-  effect_changes: t.array(AbilityEffectChange),
-  flavor_text_entries: t.array(MoveFlavorText),
+  effect_entries: D.array(VerboseEffect),
+  effect_changes: D.array(AbilityEffectChange),
+  flavor_text_entries: D.array(MoveFlavorText),
   generation: NamedAPIResource,
-  machines: t.array(MachineVersionDetail),
+  machines: D.array(MachineVersionDetail),
   // meta: MoveMetaData,
-  names: t.array(Name),
+  names: D.array(Name),
   // past_values: t.array(PastMoveStatValues),
-  stat_changes: t.array(MoveStatChange),
-  super_contest_effect: t.union([APIResource, t.null]),
+  stat_changes: D.array(MoveStatChange),
+  super_contest_effect: D.nullable(APIResource),
   target: NamedAPIResource,
   type: NamedAPIResource,
 });
 
-export interface IMove extends t.TypeOf<typeof Move> {}
+export interface IMove extends D.TypeOf<typeof Move> {}
 export type IMoveDecoder = typeof Move;
